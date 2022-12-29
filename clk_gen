@@ -1,0 +1,50 @@
+module clk_gen(
+    input   wire    clk100m,    //100MHz
+    input   wire    rst,
+    input   wire    btn_fast_shot,
+    output  reg     clk=0,      //customized clk
+    output  reg     clk10k=0
+);
+
+parameter   cnt_target_x1   =   27'd25000000-1;
+parameter   cnt_target_x10  =   27'd2500000-1;
+parameter   cnt_target_x100 =   27'd250000-1;
+parameter   cnt_target_x200 =   27'd125000-1;
+parameter   cnt_target_10k  =   14'd10000-1;    
+
+
+reg [26:0]  cnt_target=cnt_target_x1;
+reg [26:0]  cnt_clk=0;
+
+always @ (posedge clk100m) begin
+    if(rst) cnt_target  <=  cnt_target_x1;   
+    else begin
+        if(btn_fast_shot) begin
+            case(cnt_target)
+                cnt_target_x1:      cnt_target  <=  cnt_target_x10;
+                cnt_target_x10:     cnt_target  <=  cnt_target_x100;
+                cnt_target_x100:    cnt_target  <=  cnt_target_x200;      
+                cnt_target_x200:    cnt_target  <=  cnt_target_x1;
+            endcase
+        end
+    end
+end 
+
+always @ (posedge clk100m) begin
+    if(cnt_clk >= cnt_target)   cnt_clk <=  0;
+    else                        cnt_clk <=  cnt_clk+1;
+end
+
+always @ (posedge clk100m) begin
+    if(cnt_clk >= cnt_target)    clk <=  ~clk;
+end
+
+reg [13:0]  cnt_for_clk10k=0;
+always @ (posedge clk100m) begin
+    if(cnt_for_clk10k >= cnt_target_10k)  cnt_for_clk10k  <=  0;
+    else                            cnt_for_clk10k  <=  cnt_for_clk10k+1;
+    
+    if(cnt_for_clk10k >= cnt_target_10k)  clk10k  <=  ~clk10k;
+end
+
+endmodule
