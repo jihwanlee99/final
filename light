@@ -1,0 +1,455 @@
+module light(
+    input   wire            is_night, 
+    input   wire    [3:0]   state, 
+    input   wire    [3:0]   cnt_state, 
+    input   wire    [3:0]   cnt_state_emergency,
+    output reg s_w_green, n_w_green, w_w_green, e_w_green,
+    output reg s_w_red, n_w_red, w_w_red, e_w_red,
+    output reg s_green, n_green, w_green, e_green,
+    output reg s_yellow, n_yellow, w_yellow, e_yellow,
+    output reg s_red, n_red, w_red, e_red,
+    output reg s_left, n_left, w_left, e_left
+);
+
+parameter   state_A1        =   4'd0;
+parameter   state_A2        =   4'd1;
+parameter   state_B         =   4'd2;
+parameter   state_C         =   4'd3;
+parameter   state_D         =   4'd4;
+parameter   state_E1        =   4'd5;
+parameter   state_E2        =   4'd6;
+parameter   state_F         =   4'd7;
+parameter   state_G         =   4'd8;
+parameter   state_H         =   4'd9;
+parameter   state_emer_A    =   4'd10;
+parameter   state_nothing   =   4'd15;
+
+always @ (*) begin
+    if(is_night) begin  // night
+        case(state)
+            state_A1: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                         
+                end
+            end
+            state_A2: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                         
+                end
+            end
+            state_B: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b0};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b1};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b0};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b1};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b0};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b1, 1'b1, 1'b0, 1'b0};                         
+                end
+            end
+            state_C: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b1, 1'b1, 1'b0, 1'b0};                         
+                end            
+            end
+            state_E1: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b1, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};   
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                   
+                end
+                else begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};    
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                          
+                end
+            end
+            state_H: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};   
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                   
+                end
+                else begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b1, 1'b0, 1'b0, 1'b0};    
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b1, 1'b0, 1'b0, 1'b0};                          
+                end
+            end
+            state_emer_A: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                         
+                end
+            end
+            default: begin
+                {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b0, 1'b0};   
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};   
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};    
+            end
+        endcase
+    end
+    else begin
+        case(state)
+            state_A1: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 2) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd4) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                         
+                end
+            end        
+            state_D: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 2) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd4) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b1, 1'b0, 1'b0, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b1, 1'b0, 1'b0, 1'b0};                         
+                end
+            end      
+            state_E1: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 2) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b1, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd4) begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};   
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                   
+                end
+                else begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};    
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                          
+                end
+            end  
+            state_E2: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 2) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b1, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd4) begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};   
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                   
+                end
+                else begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};    
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                          
+                end
+            end  
+            state_F: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 2) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b0, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b1, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b0, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b1, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b0, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd4) begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                   
+                end
+                else begin
+                    {w_left, w_green, w_yellow, w_red}              =   {1'b1, 1'b1, 1'b0, 1'b0};                           
+                end
+            end  
+            state_G: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 2) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b1, 1'b1, 1'b1};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b1, 1'b1, 1'b1};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b1, 1'b0, 1'b0, 1'b0};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b1, 1'b1, 1'b1};            
+                end
+                //--------------- red car light ---------
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd4) begin
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                   
+                end
+                else begin
+                    {e_left, e_green, e_yellow, e_red}              =   {1'b1, 1'b1, 1'b0, 1'b0};                           
+                end
+            end  
+            state_emer_A: begin
+                //--------------- walk light--------------
+                if(cnt_state >= 5) begin
+                    if(~cnt_state[0]) begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};                   
+                    end
+                    else begin
+                        {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                        {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};
+                    end
+                end
+                else begin
+                    {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b1, 1'b1};
+                    {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b1, 1'b1, 1'b0, 1'b0};            
+                end
+                //--------------- red car light ---------
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b1};
+                //--------------- green / left car light -------
+                if(cnt_state == 4'd9) begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b1, 1'b0};                    
+                end
+                else begin
+                    {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};
+                    {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b1, 1'b0, 1'b0};                         
+                end
+            end
+            default: begin
+                {s_w_green, n_w_green, w_w_green, e_w_green}    =   {1'b0, 1'b0, 1'b0, 1'b0};
+                {s_w_red, n_w_red, w_w_red, e_w_red}            =   {1'b0, 1'b0, 1'b0, 1'b0};   
+                {s_left, s_green, s_yellow, s_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};
+                {n_left, n_green, n_yellow, n_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};
+                {w_left, w_green, w_yellow, w_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};   
+                {e_left, e_green, e_yellow, e_red}              =   {1'b0, 1'b0, 1'b0, 1'b0};    
+            end            
+        endcase
+    end
+end
+endmodule
