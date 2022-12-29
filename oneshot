@@ -1,0 +1,17 @@
+module oneshot(
+    input   wire    clk100m,
+    input   wire    rst,
+    input   wire    in,
+    output  wire    shot
+);
+
+reg in_buf;
+
+always @ (posedge clk100m) begin
+    if(rst) in_buf  <=  0;
+    else    in_buf  <=  in;
+end
+
+assign  shot    =   (~in_buf) & in;
+
+endmodule
