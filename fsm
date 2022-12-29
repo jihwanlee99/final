@@ -1,0 +1,137 @@
+module fsm(
+    input   wire    clk100m,    //100mhz
+    input   wire    clk,        //1sec
+    input   wire    rst,
+    input   wire    btn_emergency_shot,
+    input   wire    is_night,
+    
+    output  reg     [3:0]   state,
+    output  reg     [3:0]   cnt_state,
+    output  reg     [3:0]   cnt_state_emergency
+);
+
+parameter   state_A1        =   4'd0;
+parameter   state_A2        =   4'd1;
+parameter   state_B         =   4'd2;
+parameter   state_C         =   4'd3;
+parameter   state_D         =   4'd4;
+parameter   state_E1        =   4'd5;
+parameter   state_E2        =   4'd6;
+parameter   state_F         =   4'd7;
+parameter   state_G         =   4'd8;
+parameter   state_H         =   4'd9;
+parameter   state_emer_A    =   4'd10;
+parameter   state_nothing   =   4'd15;
+
+reg btn_emergency_shot_get;
+reg btn_emergency_shot_get_buf1;
+reg btn_emergency_shot_slow;
+always @ (posedge clk100m) begin
+    if(rst)                             btn_emergency_shot_get <=  0;
+    else if(btn_emergency_shot)        btn_emergency_shot_get <=  1;
+    else if(btn_emergency_shot_slow)   btn_emergency_shot_get <=  0;
+end
+always @ (posedge clk) begin
+    if(rst) btn_emergency_shot_get_buf1    <=  0;
+    else    btn_emergency_shot_get_buf1    <=  btn_emergency_shot_get;
+    
+    btn_emergency_shot_slow    <=  (~btn_emergency_shot_get_buf1) &   btn_emergency_shot_get;
+end
+
+
+//reg [3:0]   cnt_state;
+//reg [3:0]   cnt_state_emergency;
+reg [3:0]   state_keep; //when emergency happen
+
+always @ (posedge clk) begin
+    if(rst) cnt_state   <=  0;
+    else begin
+        if(is_night) begin
+            if(~btn_emergency_shot_slow) begin
+                case(state)
+                    state_A1:begin    if(cnt_state == 4'd9)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_A2:begin    if(cnt_state == 4'd9)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_B: begin    if(cnt_state == 4'd9)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_C: begin    if(cnt_state == 4'd9)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_E1:begin    if(cnt_state == 4'd9)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_H: begin    if(cnt_state == 4'd9)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                endcase
+            end
+        end
+        else begin
+            if(~btn_emergency_shot_slow) begin
+                case(state)
+                    state_A1:begin    if(cnt_state == 4'd4)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_D: begin    if(cnt_state == 4'd4)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_E1:begin    if(cnt_state == 4'd4)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_E2:begin    if(cnt_state == 4'd4)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_F: begin    if(cnt_state == 4'd4)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                    state_G: begin    if(cnt_state == 4'd4)   cnt_state   <=  4'd0; else cnt_state <= cnt_state + 1;  end
+                endcase            
+            end
+        end
+    end
+end
+
+always @ (posedge clk) begin
+    if(rst) cnt_state_emergency <=  0;
+    else begin
+        if(btn_emergency_shot_slow)     cnt_state_emergency <=  0;
+        else if(state == state_emer_A)  cnt_state_emergency <=  cnt_state_emergency + 1;
+        else                            cnt_state_emergency <=  0;
+    end
+end
+
+always @ (posedge clk) begin
+    if(rst) state_keep  <=  state_nothing;
+    else if(btn_emergency_shot_slow) begin
+        if( (state == state_A1) | (state == state_A2) | (state == state_B) | (state == state_C) | (state == state_D) | (state == state_E1) | 
+            (state == state_E2) | (state == state_F) | (state == state_G) | (state == state_H) ) begin
+            state_keep  <=  state;
+        end
+    end
+    else    state_keep  <=  state_keep;
+end
+
+always @ (posedge clk) begin
+    if(rst) state   <=  state_B;
+    else begin
+        if(is_night) begin
+            if(~btn_emergency_shot_slow) begin  //not emergency
+                case(state)
+                    state_B:    if(cnt_state == 4'd9)   state   <=  state_A1;
+                    state_A1:   if(cnt_state == 4'd9)   state   <=  state_C;
+                    state_C:    if(cnt_state == 4'd9)   state   <=  state_A2;
+                    state_A2:   if(cnt_state == 4'd9)   state   <=  state_E1;
+                    state_E1:   if(cnt_state == 4'd9)   state   <=  state_H;
+                    state_H:    if(cnt_state == 4'd9)   state   <=  state_B;
+                    state_emer_A:   if(cnt_state_emergency == 4'd14)  state   <=  state_keep;
+                    default:                            state   <=  state_B;
+                endcase
+            end
+            else begin  //emergency happen
+                state   <=  state_emer_A;
+            end
+        end
+        else begin
+            if(~btn_emergency_shot_slow) begin  //not emergency
+                case(state)
+                    state_A1:   if(cnt_state == 4'd4)   state   <=  state_D;
+                    state_D:    if(cnt_state == 4'd4)   state   <=  state_F;
+                    state_F:    if(cnt_state == 4'd4)   state   <=  state_E1;
+                    state_E1:   if(cnt_state == 4'd4)   state   <=  state_G;
+                    state_G:    if(cnt_state == 4'd4)   state   <=  state_E2;
+                    state_E2:   if(cnt_state == 4'd4)   state   <=  state_A1;
+                    state_emer_A:   if(cnt_state_emergency == 4'd14)  state   <=  state_keep;
+                    default:                            state   <=  state_A1;
+                endcase
+            end
+            else begin  //emergency happen
+                state   <=  state_emer_A;
+            end            
+        end
+    end
+end
+
+
+endmodule
