@@ -1,0 +1,82 @@
+module top(
+    input clk100m,  //100MHz
+    input rst,
+    input btn_fast,
+    input btn_hour1_plus,
+    input btn_emergency,    
+
+    output s_w_green, n_w_green, w_w_green, e_w_green,
+    output s_w_red, n_w_red, w_w_red, e_w_red,
+    output s_green, n_green, w_green, e_green,
+    output s_yellow, n_yellow, w_yellow, e_yellow,
+    output s_red, n_red, w_red, e_red,
+    output s_left, n_left, w_left, e_left,
+
+    output LCD_E, LCD_RS, LCD_RW,
+    output [7:0] LCD_DATA    
+);
+
+
+wire    btn_fast_shot, btn_emergency_shot, btn_hour1_plus_shot;
+
+wire    clk;    //my clk
+wire    clk10k; //for lcd
+
+wire    [3:0]   state;
+wire    [3:0]   cnt_state;
+wire    [3:0]   cnt_state_emergency;
+    
+wire    [3:0]   hour10;
+wire    [3:0]   hour1;
+wire    [3:0]   min10;
+wire    [3:0]   min1;
+wire    [3:0]   sec10;
+wire    [3:0]   sec1;
+wire            is_night;
+
+
+oneshot oneshot_btn_fast(clk100m, rst, btn_fast, btn_fast_shot);
+oneshot oneshot_btn_hour1_plus(clk100m, rst, btn_hour1_plus, btn_hour1_plus_shot);
+oneshot oneshot_btn_emergency(clk100m, rst, btn_emergency, btn_emergency_shot);
+
+clk_gen clk_gen(clk100m, rst, btn_fast_shot, clk, clk10k);
+
+fsm fsm(clk100m, clk, rst, btn_emergency_shot, is_night, state, cnt_state, cnt_state_emergency);
+
+timer timer(clk100m, clk, rst, btn_hour1_plus_shot, hour10, hour1, min10, min1, sec10, sec1, is_night);
+
+light light(
+    is_night, 
+    state, 
+    cnt_state, 
+    cnt_state_emergency,
+    s_w_green, n_w_green, w_w_green, e_w_green,
+    s_w_red, n_w_red, w_w_red, e_w_red,
+    s_green, n_green, w_green, e_green,
+    s_yellow, n_yellow, w_yellow, e_yellow,
+    s_red, n_red, w_red, e_red,
+    s_left, n_left, w_left, e_left
+);
+
+text_lcd text_lcd(
+    .rst(rst),
+    .clk(clk10k),    //10khz
+    
+    .fsm(state),
+    .is_night(is_night),
+    .hour10(hour10),
+    .hour1(hour1),
+    .min10(min10),
+    .min1(min1),
+    .sec10(sec10),
+    .sec1(sec1),
+    
+    .lcd_e(LCD_E),
+    .lcd_rs(LCD_RS),
+    .lcd_rw(LCD_RW),
+    .lcd_data(LCD_DATA)
+);
+
+endmodule
+
+
