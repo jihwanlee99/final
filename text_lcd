@@ -1,0 +1,264 @@
+module text_lcd(
+    input   wire    rst,
+    input   wire    clk,    //10khz
+    
+    input   wire    [3:0]   fsm,        //state_machine's state
+    input   wire            is_night,
+    input   wire    [3:0]   hour10,
+    input   wire    [3:0]   hour1,
+    input   wire    [3:0]   min10,
+    input   wire    [3:0]   min1,
+    input   wire    [3:0]   sec10,
+    input   wire    [3:0]   sec1,
+    
+    output  wire        lcd_e, 
+    output  reg         lcd_rs, lcd_rw,
+    output  reg [7:0]   lcd_data
+);
+
+
+parameter   state_A1        =   4'd0;
+parameter   state_A2        =   4'd1;
+parameter   state_B         =   4'd2;
+parameter   state_C         =   4'd3;
+parameter   state_D         =   4'd4;
+parameter   state_E1        =   4'd5;
+parameter   state_E2        =   4'd6;
+parameter   state_F         =   4'd7;
+parameter   state_G         =   4'd8;
+parameter   state_H         =   4'd9;
+parameter   state_emer_A    =   4'd10;
+parameter   state_nothing   =   4'd15;
+
+parameter   DELAY           =   3'b000,
+            FUNCTION_SET    =   3'b001,
+            ENTRY_MODE      =   3'b010,
+            DISP_ONOFF      =   3'b011,
+            LINE1           =   3'b100,
+            LINE2           =   3'b101,
+            DELAY_T         =   3'b110,
+            CLEAR_DISP      =   3'b111;
+reg [2:0]   state;
+
+reg [6:0]   cnt;
+
+always @ (posedge clk or posedge rst) begin
+    if(rst) begin
+        state   <=   DELAY;
+        cnt     <=  0; 
+    end
+    else begin
+        case(state)
+            DELAY: begin
+                if(cnt >= 70)   state   <=  FUNCTION_SET;
+                if(cnt >= 70)   cnt <=  0;
+                else            cnt <=  cnt+1;
+            end
+            FUNCTION_SET: begin
+                if(cnt >= 30)   state   <=  DISP_ONOFF;  
+                if(cnt >= 30)   cnt <=  0;
+                else            cnt <=  cnt+1;              
+            end
+            DISP_ONOFF: begin
+                if(cnt >= 30)   state   <=  ENTRY_MODE; 
+                if(cnt >= 30)   cnt <=  0;
+                else            cnt <=  cnt+1;               
+            end
+            ENTRY_MODE: begin
+                if(cnt >= 30)   state   <=  LINE1;   
+                if(cnt >= 30)   cnt <=  0;
+                else            cnt <=  cnt+1;             
+            end
+            LINE1: begin
+                if(cnt >= 20)   state   <=  LINE2;              
+                if(cnt >= 20)   cnt <=  0;
+                else            cnt <=  cnt+1;  
+            end
+            LINE2: begin
+                if(cnt >= 20)   state   <=  DELAY_T;          
+                if(cnt >= 20)   cnt <=  0;
+                else            cnt <=  cnt+1;              
+            end
+            DELAY_T: begin
+                if(cnt >= 5)    state   <=  CLEAR_DISP;            
+                if(cnt >= 5)    cnt <=  0;
+                else            cnt <=  cnt+1;             
+            end
+            CLEAR_DISP: begin
+                if(cnt >= 5)    state   <=  LINE1;           
+                if(cnt >= 5)    cnt <=  0;
+                else            cnt <=  cnt+1;              
+            end
+            default: begin
+                state   <=  DELAY;                       
+                cnt     <=  0;
+            end            
+        endcase
+    end
+end
+
+always @ (posedge clk or posedge rst) begin
+    if(rst) {lcd_rs, lcd_rw, lcd_data}  <=  10'b1_1_00000000;
+    else begin
+        case(state)
+            FUNCTION_SET:   {lcd_rs, lcd_rw, lcd_data}  <=  10'b0_0_0011_1000;
+            DISP_ONOFF:     {lcd_rs, lcd_rw, lcd_data}  <=  10'b0_0_0000_1100;
+            ENTRY_MODE:     {lcd_rs, lcd_rw, lcd_data}  <=  10'b0_0_0000_0110;
+            LINE1: begin
+                case(cnt)
+                    7'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  10'b0_0_1000_0000;
+                    7'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h54};  //T
+                    7'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h69};  //i
+                    7'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h6d};  //m
+                    7'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h65};  //e
+                    7'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                    7'd6:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h3a};  //:
+                    7'd7:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                    7'd8: begin
+                        case(hour10)
+                            4'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h30};  //0
+                            4'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h31};  //1
+                            4'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h32};  //2
+                            default:{lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                    7'd9: begin
+                        case(hour1)
+                            4'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h30};  //0
+                            4'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h31};  //1
+                            4'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h32};  //2
+                            4'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h33};  //3
+                            4'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h34};  //4
+                            4'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h35};  //5
+                            4'd6:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h36};  //6
+                            4'd7:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h37};  //7
+                            4'd8:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h38};  //8
+                            4'd9:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h39};  //9
+                            default:{lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                    7'd10:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h3a};  //:
+                    7'd11: begin
+                        case(min10)
+                            4'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h30};  //0
+                            4'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h31};  //1
+                            4'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h32};  //2
+                            4'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h33};  //3
+                            4'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h34};  //4
+                            4'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h35};  //5
+                            default:{lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                    7'd12: begin
+                        case(min1)
+                            4'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h30};  //0
+                            4'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h31};  //1
+                            4'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h32};  //2
+                            4'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h33};  //3
+                            4'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h34};  //4
+                            4'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h35};  //5
+                            4'd6:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h36};  //6
+                            4'd7:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h37};  //7
+                            4'd8:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h38};  //8
+                            4'd9:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h39};  //9
+                            default:{lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                    7'd13:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h3a};  //:
+                    7'd14: begin
+                        case(sec10)
+                            4'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h30};  //0
+                            4'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h31};  //1
+                            4'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h32};  //2
+                            4'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h33};  //3
+                            4'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h34};  //4
+                            4'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h35};  //5
+                            default:{lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                    7'd15: begin
+                        case(sec1)
+                            4'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h30};  //0
+                            4'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h31};  //1
+                            4'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h32};  //2
+                            4'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h33};  //3
+                            4'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h34};  //4
+                            4'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h35};  //5
+                            4'd6:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h36};  //6
+                            4'd7:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h37};  //7
+                            4'd8:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h38};  //8
+                            4'd9:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h39};  //9
+                            default:{lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                    default: begin
+                        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                    end
+                endcase
+            end
+            LINE2: begin
+                case(cnt)
+                    7'd0:   {lcd_rs, lcd_rw, lcd_data}  <=  10'b0_0_1100_0000;
+                    7'd1:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h53};  //S
+                    7'd2:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h74};  //t
+                    7'd3:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h61};  //a
+                    7'd4:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h74};  //t
+                    7'd5:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h65};  //e
+                    7'd6:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h3a};  //:
+                    7'd7: begin
+                        case(fsm)
+                            state_A1:       {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h41};  //A
+                            state_A2:       {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h41};  //A
+                            state_B:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h42};  //B
+                            state_C:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h43};  //C
+                            state_D:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h44};  //D
+                            state_E1:       {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h45};  //E
+                            state_E1:       {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h45};  //E
+                            state_F:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h46};  //F
+                            state_G:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h47};  //G
+                            state_H:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h48};  //H
+                            state_emer_A:   {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h41};  //A
+                            default:        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                        endcase
+                    end
+                     7'd8: {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                     7'd9: {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h28};  //(
+                     7'd10: begin
+                        if(is_night)    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h6e};  //n
+                        else            {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h64};  //d
+                     end
+                     7'd11: begin
+                        if(is_night)    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h69};  //i
+                        else            {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h61};  //a
+                     end
+                     7'd12: begin
+                        if(is_night)    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h67};  //g
+                        else            {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h79};  //y
+                     end
+                     7'd13: begin
+                        if(is_night)    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h68};  //h
+                        else            {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h29};  //)
+                     end
+                     7'd14: begin
+                        if(is_night)    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h74};  //t
+                        else            {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                     end
+                     7'd15: begin
+                        if(is_night)    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h29};  //)
+                        else            {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                     end
+                    default: begin
+                        {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b0,8'h20};  //
+                    end                     
+                 endcase                
+            end
+            DELAY_T:    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b0,1'b0,8'b0000_0010};
+            CLEAR_DISP: {lcd_rs, lcd_rw, lcd_data}  <=  {1'b0,1'b0,8'b0000_0001};
+            default:    {lcd_rs, lcd_rw, lcd_data}  <=  {1'b1,1'b1,8'b0000_0000};            
+        endcase
+    end
+end
+
+assign  lcd_e   =   clk;
+
+endmodule
